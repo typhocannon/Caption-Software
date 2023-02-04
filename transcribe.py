@@ -1,5 +1,7 @@
 import google.cloud.texttospeech as tts
+import json
 import os
+from flask import Flask, requests, jsonify
 from google.cloud import speech 
 from google.cloud import translate_v2 as translate
 import six
@@ -74,11 +76,86 @@ def list_languages():
     print(f" Languages: {len(languages)} ".center(60, "-"))
     for i, language in enumerate(sorted(languages)):
         print(f"{language:>10}", end="\n" if i % 5 == 4 else "")
+
+app = Flask(__name__)
+@app.route('/caption', methods=['POST'])
+
+def captionRoute():
+    if requests.method == "POST":
+        return
+    # getFromDylan()
+    # getFromDatabase()
+    # jsonify()
+    # return captionPost()
+    
+def getFromDylan():
+    # parse the microphone
+    return wav
+
+def getFromDataBase():
+    # 
+    # requests.get_json()
+    return languages
+
+def jsonifyNeededData():
+    # puts the .wav the lang to and the language from into a jsonFile
+     # data = {'audio_file' : 'text_audiofile.wav', 
+        #         'lang-from' : 'en-US', 
+        #         'lang-to' : 'vi-VN',
+        #         }
+    return
         
-# def main():
-#     print("hello world\n")
-#     list_languages()
-if __name__ == "__main__":
+# parse the json data 
+def captionPost(jsonData):        
+        # # data should look like this IDEALLY
+        # data = {'audio_file' : 'text_audiofile.wav', 
+        #         'lang-from' : 'en-US', 
+        #         'lang-to' : 'vi-VN',
+        #         }
+        
+        # getting json data from request and parsing it
+        data = jsonData
+        
+        # initialized var to hold data
+        audio_file = None
+        lang_from = None
+        lang_to = None
+        
+        if data:
+            if 'audio_file' in data:
+                audio_file = data['audio_file']
+            if 'lang_from' in data:
+                lang_from = data['lang_from']
+            if 'lang_to' in data:
+                lang_to = data['lang_to']
+        
+        # setting variables to hold text
+        text = ""
+        trText = ""
+        transl8 = False
+        
+        # setting the audio stuff
+        audioFile = setAudioFile(audio_file)
+        audioFile = openAudioFile(audioFile)
+        transFile = configAudioFile(audioFile, lang_from)
+        transFile = transConfigAudio(transFile, audioFile)
+        
+        # checl if the language from and the language to is the same if not then we can set it true
+        if (lang_from != lang_to):
+            transl8 = True
+            
+        # setting the text
+        for word in transFile.results:
+            text += word.alternatives[0].transcript
+        
+        # if the translate feature is on, translate it and return it 
+        if (transl8):
+            trText = transText(text, lang_to)
+            return trText
+        
+        return text
+        
+def test():
     # list_languages()
     english = 'en-US'
     audioFile = setAudioFile("/home/ctran59/Caption-Software/test_audio/Sunday.wav")
@@ -100,4 +177,9 @@ if __name__ == "__main__":
     
     print("\nTranslated Text:\n")
     print(trText)
+    
+
+if __name__ == "__main__":
+    test()
+    app.run(debug=True, port=9090)
     
