@@ -82,37 +82,38 @@ app = Flask(__name__)
 
 def captionRoute():
     if requests.method == "POST":
-        return
+        return "Hello! We Are Here"
     # getFromDylan()
     # getFromDatabase()
     # jsonify()
     # return captionPost()
     
-def getFromDylan():
+def getFromDylan(raw_audio):
     # parse the microphone
+    wav = raw_audio
     return wav
 
-def getFromDataBase():
+def getFromDataBase(lang_one, lang_two):
     # 
     # requests.get_json()
-    return languages
+    lang_from = lang_one
+    lang_to = lang_two
+    return lang_one, lang_two
 
-def jsonifyNeededData():
-    # puts the .wav the lang to and the language from into a jsonFile
+def jsonifyNeededData(wav_file, lang_to, lang_from):
+    # puts the .wav the lang to and the language from into a jsonFile, nevermind just write it as a string its python lol
      # data = {'audio_file' : 'text_audiofile.wav', 
         #         'lang-from' : 'en-US', 
         #         'lang-to' : 'vi-VN',
         #         }
-    return
+    jsonData = { 'audio_file' : wav_file, 
+                'lang_to' : lang_to, 
+                'lang_from' : lang_from }
+    
+    return jsonData
         
 # parse the json data 
 def captionPost(jsonData):        
-        # # data should look like this IDEALLY
-        # data = {'audio_file' : 'text_audiofile.wav', 
-        #         'lang-from' : 'en-US', 
-        #         'lang-to' : 'vi-VN',
-        #         }
-        
         # getting json data from request and parsing it
         data = jsonData
         
