@@ -1,12 +1,12 @@
 import google.cloud.texttospeech as tts
 import json
 import os
-from flask import Flask, requests, jsonify
+from flask import Flask, request, jsonify
 from google.cloud import speech 
 from google.cloud import translate_v2 as translate
 import six
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/ctran59/Caption-Software/keys/client_service_key.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'client_service_key.json'
 speech_client = speech.SpeechClient()
 
 # file size needs to be < 10mbs and the length < 1 min
@@ -81,7 +81,7 @@ app = Flask(__name__)
 @app.route('/caption', methods=['POST'])
 
 def captionRoute():
-    if requests.method == "POST":
+    if request.method == "POST":
         return "Hello! We Are Here"
     # getFromDylan()
     # getFromDatabase()
@@ -159,9 +159,9 @@ def captionPost(jsonData):
 def test():
     # list_languages()
     english = 'en-US'
-    audioFile = setAudioFile("/home/ctran59/Caption-Software/test_audio/Sunday.wav")
+    audioFile = setAudioFile("/home/ctran59/Caption-Software/test_audio/Welcome to Emma Saying!.wav")
     audioFile = openAudioFile(audioFile)
-    transFile = configAudioFile(audioFile, 'vi-VN')
+    transFile = configAudioFile(audioFile, english)
     transFile = transConfigAudio(transFile, audioFile)
     # print(transFile)
     text = ""
@@ -173,14 +173,14 @@ def test():
     print("Original Text:\n")
     print(text)
     
-    target = "en-US"
-    trText = transText(text, target)
+    target = "vi-VN"
+    trText = transText(text, "vi-VN")
     
     print("\nTranslated Text:\n")
     print(trText)
     
 
 if __name__ == "__main__":
-    test()
+    # test()
     app.run(debug=True, port=9090)
     
