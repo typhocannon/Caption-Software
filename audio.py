@@ -10,6 +10,7 @@ rec = sr.Recognizer()
 
 def getAudioFile(wavFile):
     audioFile = wavFile
+    return audioFile
 
 # clean audio function
 def cleanAudio(audioFile):
@@ -20,9 +21,16 @@ def cleanAudio(audioFile):
 # translate from speech to text 
 def transAudio(audioFile, apiKey, apiPassword):
     caption = rec.recognize_ibm(audioFile, username=apiKey, password= apiPassword)
+    return caption
 
+# debug to print the caption
 def printTrans(caption):
     print(caption)
-    
+
+# main function to run testing
 def main():
-    audioFile
+    wavFile = "/home/ctran59/Caption-Software/test audio/Welcome to Emma Saying!.wav"
+    audioFile = getAudioFile(wavFile)
+    cleanAudio(audioFile)
+    transAudio()
+    
