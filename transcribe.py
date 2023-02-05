@@ -1,12 +1,11 @@
 import google.cloud.texttospeech as tts
-import json
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from google.cloud import speech 
 from google.cloud import translate_v2 as translate
 import six
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'client_service_key.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'keys/client_service_key.json'
 speech_client = speech.SpeechClient()
 
 # file size needs to be < 10mbs and the length < 1 min
@@ -78,10 +77,17 @@ def list_languages():
         print(f"{language:>10}", end="\n" if i % 5 == 4 else "")
 
 app = Flask(__name__)
+
+
+@app.route('/', methods=['GET'])
+def helloWorld():
+    return "Hello World"
+
 @app.route('/caption', methods=['POST'])
 
 def captionRoute():
     if request.method == "POST":
+        test()
         return "Hello! We Are Here"
     # getFromDylan()
     # getFromDatabase()
