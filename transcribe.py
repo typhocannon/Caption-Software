@@ -1,12 +1,17 @@
 import google.cloud.texttospeech as tts
 import os
 from flask import Flask, request, jsonify
+import json
 from google.cloud import speech 
 from google.cloud import translate_v2 as translate
 import six
+import speech_recognition as sr
+from scipy.signal import find_peaks, decimate
 import scipy.io.wavfile as wavf
+import wave
 import numpy as np
 import struct
+import resampy
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'keys/client_service_key.json'
 speech_client = speech.SpeechClient()
@@ -19,6 +24,7 @@ trans_client = translate.Client()
 translate_lang = ""
 text = ""
 
+r = sr.Recognizer()
 # translate the text
 def transText(text, translate_lang):
     # change the text type to be put into the .translate function from the translate client
@@ -93,36 +99,128 @@ def helloWorld():
 
 def captionRoute():
     if request.method == "POST":
-        test()
+        # test()
+        # print(request.json)
+        # jsonData = request.json['sound']
+        # print(jsonData)
+        # print("Request \n")
+        
+        print(request.data)
+        
+        # print("JsonData")
+        jsonData = json.loads(request.data)
+        
+        # print(type(jsonData))
+        
+        # for key in jsonData:
+        #     print(key)
+        # print(jsonData["sound:"])
+        # real = ast.literal_eval(jsonData)
+        # print(real)
+
+        # print(data)
+        audio_file = getFromDylan(jsonData["sound:"])
+        
+        lang_from = "en-US"
+        lang_to = lang_from
+        
+        # setting the audio stuff
+        audioFile = setAudioFile(audio_file)
+        audioFile = openAudioFile(audioFile)
+        transFile = configAudioFile(audioFile, lang_from)
+        transFile = transConfigAudio(transFile, audioFile)
+        
+        # checl if the language from and the language to is the same if not then we can set it true
+        if (lang_from != lang_to):
+            transl8 = True
+            
+        # setting the text
+        for word in transFile.results:
+            text += word.alternatives[0].transcript
+        
+        # if the translate feature is on, translate it and return it 
+        if (transl8):
+            trText = transText(text, lang_to)
+            return trText
+        
+        return text
+        # getFromDatabase()
+        # jsonify()
+        # return captionPost()
         return "Hello! We Are Here"
-    # getFromDylan()
-    # getFromDatabase()
-    # jsonify()
-    # return captionPost()
+
     
 # parse the microphone raw data, raw_audio is an array full of integers
 def getFromDylan(raw_audio):
     # open a wave file 
-    wav_file = ("audio.wav", "w")
-    wav_file.open()
+    # wav_file = ("audio.wav", "w")
+    # wav_file.open()
     
-    #setting variables for the wav file
-    sampleRate = 44100.0 # hertz
-    nchannels = 2
-    samplewidth = 2
-    # set parameters for the wav file
-    wav_file.setnchannels(nchannels)
-    wav_file.setsampwidth(samplewidth)
-    wav_file.setframerate(sampleRate)
+    # amplitude = np.max(raw_audio) - np.min(raw_audio)
+    # raw_audio = raw_audio * amplitude
     
-    # write the audio samples to the wave file
-    for sample in raw_audio:
-        wav_file.writeframes(struct.pack('h', sample))
+    # raw_audio = np.array(raw_audio, dtype=np.int16)
+    
+    # factor = 2
+    # raw_audio = decimate(raw_audio, factor)
+    # raw_audio = raw_audio.tobytes()
+    
+    # raw_audio = np.frombuffer(raw_audio, dtype=np.int16)
+    # raw_audio = raw_audio / 2**15
+    # digital_signal = np.round(raw_audio * (2**15 - 1)).astype(np.int16)
+    
+    # with wave.open('digital_signal.wav', 'wb') as wavfile:
+    #     wavfile.setnchannels(2)
+    #     wavfile.setsampwidth(2)
+    #     wavfile.setframerate(8000)
+    #     wavfile.writeframes(digital_signal.tobytes()) 
+        
+    # Define the sampling rate and bit depth
+    sample_rate = 44100
+    bit_depth = 16
 
-    # close the wave file
-    wav_file.close()
+    # Define the desired number of samples, which can be calculated using numSamples = duration * sample_rate
+    # hardcode the duration to be in seconds
+    duration = 5
 
-    return wav_file
+    # estimate the sample rate of the input
+    current_sample_rate = len(raw_audio) / duration
+    print("Current sample rate: " + str(current_sample_rate))
+    
+    # resample the data
+    downsampled_data = resampy.resample(np.array(raw_audio), current_sample_rate, sample_rate)
+    
+    # normalize it
+    normalized_data = (downsampled_data / np.max(downsampled_data)) * (2**15 - 1)
+    resampled_data = normalized_data
+    
+    # Write the data to a .wav file
+    with wave.open('output.wav', 'wb') as f:
+        # Set the sample width (in bytes)
+        sample_width = 2
+        
+        # Set the number of channels
+        n_channels = 1
+        
+        # Set the number of samples
+        n_samples = resampled_data.shape[0]
+        
+        # Set the parameters for the .wav file
+        f.setsampwidth(sample_width)
+        f.setnchannels(n_channels)
+        f.setframerate(sample_rate)
+        
+        # Write the data to the .wav file
+        f.writeframes(np.array(resampled_data, dtype=np.int16).tobytes())
+    
+    wav = sr.AudioFile('output.wav')
+    with wav as source:
+        r.adjust_for_ambient_noise(source)
+        audio = r.record(source)
+    
+    r.recognize_google(audio, show_all = True)
+    
+    return wavfile
 
 def getFromDataBase(lang_one, lang_two):
     # 
