@@ -1,9 +1,12 @@
 import google.cloud.texttospeech as tts
 import os
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from google.cloud import speech 
 from google.cloud import translate_v2 as translate
 import six
+import scipy.io.wavfile as wavf
+import numpy as np
+import struct
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'keys/client_service_key.json'
 speech_client = speech.SpeechClient()
@@ -81,7 +84,10 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def helloWorld():
-    return "Hello World"
+    if request.method == "GET":
+        # return jsonify({"a'": 1, 2:3})
+        # return request.data
+        return "Hello World"
 
 @app.route('/caption', methods=['POST'])
 
@@ -94,10 +100,29 @@ def captionRoute():
     # jsonify()
     # return captionPost()
     
+# parse the microphone raw data, raw_audio is an array full of integers
 def getFromDylan(raw_audio):
-    # parse the microphone
-    wav = raw_audio
-    return wav
+    # open a wave file 
+    wav_file = ("audio.wav", "w")
+    wav_file.open()
+    
+    #setting variables for the wav file
+    sampleRate = 44100.0 # hertz
+    nchannels = 2
+    samplewidth = 2
+    # set parameters for the wav file
+    wav_file.setnchannels(nchannels)
+    wav_file.setsampwidth(samplewidth)
+    wav_file.setframerate(sampleRate)
+    
+    # write the audio samples to the wave file
+    for sample in raw_audio:
+        wav_file.writeframes(struct.pack('h', sample))
+
+    # close the wave file
+    wav_file.close()
+
+    return wav_file
 
 def getFromDataBase(lang_one, lang_two):
     # 
