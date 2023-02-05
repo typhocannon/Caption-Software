@@ -12,9 +12,17 @@ import wave
 import numpy as np
 import struct
 import resampy
+from pymongo.server_api import ServerApi
+from pymongo.mongo_client import MongoClient
+import pymongo
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'keys/client_service_key.json'
 speech_client = speech.SpeechClient()
+
+client = pymongo.MongoClient('TOKEN', server_api=ServerApi('1'))
+db = client["Languages"]
+collection = db.get_collection("Google Cloud Languages")
+
 
 # file size needs to be < 10mbs and the length < 1 min
 audioFile = ""
@@ -87,7 +95,7 @@ def list_languages():
 
 app = Flask(__name__)
 
-
+# generic route
 @app.route('/', methods=['GET'])
 def helloWorld():
     if request.method == "GET":
@@ -95,6 +103,40 @@ def helloWorld():
         # return request.data
         return "Hello World"
 
+
+# route 1 avail spoken lang
+@app.route('/spoken', methods=['GET'])
+def getSpokenLang():
+    if request.method == "GET":
+        stuff = collection.find({})
+        arr = []
+        for key in stuff:
+            arr.append(key)
+        return arr
+    
+# route 2 avail spoken lang
+@app.route('/text', methods=['GET'])
+def getTextLang():
+    if request.method == "GET":
+        stuff = collection.find({})
+        arr = []
+        for key in stuff:
+            arr.append(key)
+        return arr
+    
+# route 2 avail spoken lang
+@app.route('/Update', methods=['POST'])
+def Update():
+    if request.method == "POST":
+        updateCol = db["Options"]
+        
+        lang_from = {"language": lang_from }
+        lang_to = {"text": lang_to}
+        updateCol.update_one(lang_from, lang_to)
+        
+        
+
+# route to parse data
 @app.route('/caption', methods=['POST'])
 
 def captionRoute():
@@ -105,24 +147,28 @@ def captionRoute():
         # print(jsonData)
         # print("Request \n")
         
-        print(request.data)
+        # print(request.data)
         
-        # print("JsonData")
-        jsonData = json.loads(request.data)
+        # # print("JsonData")
+        # jsonData = json.loads(request.data)
         
-        # print(type(jsonData))
+        # # print(type(jsonData))
         
-        # for key in jsonData:
-        #     print(key)
-        # print(jsonData["sound:"])
-        # real = ast.literal_eval(jsonData)
-        # print(real)
+        # # for key in jsonData:
+        # #     print(key)
+        # # print(jsonData["sound:"])
+        # # real = ast.literal_eval(jsonData)
+        # # print(real)
 
-        # print(data)
-        audio_file = getFromDylan(jsonData["sound:"])
+        # # print(data)
+        # audio_file = getFromDylan(jsonData["sound:"])
+        
+        audio_file = "/home/ctran59/Caption-Software/test_audio/Welcome to Emma Saying!.wav"
         
         lang_from = "en-US"
         lang_to = lang_from
+        text = ""
+        transl8 = False
         
         # setting the audio stuff
         audioFile = setAudioFile(audio_file)
